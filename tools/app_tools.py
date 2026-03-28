@@ -3,26 +3,46 @@ import os
 from typing import Dict, Any, List
 
 def open_app(app_name: str) -> str:
-    """Opens a macOS application by its name."""
+    """Opens a Windows application by its name or process."""
     try:
-        subprocess.run(["open", "-a", app_name], check=True)
+        # Use 'start' in shell for Windows
+        subprocess.run(["cmd", "/c", "start", app_name], check=True)
         return f"Successfully opened application: {app_name}"
-    except subprocess.CalledProcessError as e:
-        return f"Error opening application: {str(e)}"
     except Exception as e:
-        return f"Unexpected error while opening app: {str(e)}"
+        return f"Error opening application: {str(e)}"
 
 def open_url(url: str) -> str:
-    """Opens a URL in the default browser."""
+    """Opens a URL in the default browser with typo correction (Windows)."""
     try:
+        url = url.replace("chat.gpt.com", "chatgpt.com")
         if not url.startswith(("http://", "https://")):
             url = f"https://{url}"
-        subprocess.run(["open", url], check=True)
+        
+        # Windows-native URL opening
+        os.startfile(url)
         return f"Successfully opened URL: {url}"
-    except subprocess.CalledProcessError as e:
-        return f"Error opening URL: {str(e)}"
     except Exception as e:
-        return f"Unexpected error while opening URL: {str(e)}"
+        return f"Error opening URL: {str(e)}"
+
+def search_chatgpt(prompt: str) -> str:
+    """Opens ChatGPT and enters prompt via PowerShell script."""
+    try:
+        url = "https://chatgpt.com/"
+        os.startfile(url)
+        
+        # Use PowerShell to simulate typing and Enter
+        # Targets the active window after a delay
+        ps_script = f'''
+        $wshell = New-Object -ComObject WScript.Shell;
+        Sleep 5;
+        $wshell.SendKeys("{prompt}");
+        Sleep 1;
+        $wshell.SendKeys("~"); # ~ is the Enter key in SendKeys
+        '''
+        subprocess.run(["powershell", "-Command", ps_script], check=True)
+        return f"Successfully opened ChatGPT and submitted prompt via PowerShell: {prompt}"
+    except Exception as e:
+        return f"Error using Windows automation: {str(e)}"
 
 def open_in_code(path: str) -> str:
     """Opens a file or folder in Visual Studio Code."""
@@ -114,6 +134,17 @@ app_tools_schema = [
                 "query": {"type": "string", "description": "The search term, e.g., 'best hindi songs'."}
             },
             "required": ["query"]
+        }
+    },
+    {
+        "name": "search_chatgpt",
+        "description": "Opens ChatGPT in Safari and automatically types/submits a search prompt.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "prompt": {"type": "string", "description": "The question or query to ask ChatGPT."}
+            },
+            "required": ["prompt"]
         }
     }
 ]

@@ -21,7 +21,22 @@ class VoiceListener:
                 try:
                     audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
                     text = self.recognizer.recognize_google(audio)
-                    print(f"\n[Voice] Heard: {text}")
+                    
+                    # --- NOISE CLASSIFICATION ---
+                    # 1. Length check: noise is often 1-2 words
+                    words = text.lower().split()
+                    if len(words) < 2 and "stop" not in words:
+                        continue
+                        
+                    # 2. Actionable check: does it sound like a command?
+                    action_keywords = ["open", "create", "search", "what", "find", "run", "delete", "code", "chat", "gpt"]
+                    is_command = any(word in action_keywords for word in words)
+                    
+                    if not is_command:
+                        print(f" [Voice] Ignoring noise: {text}")
+                        continue
+                        
+                    print(f"\n[Voice] Classified Command: {text}")
                     
                     if "stop listening" in text.lower():
                         print("[Voice] Stopping voice listener...")

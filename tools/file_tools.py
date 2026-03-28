@@ -4,17 +4,18 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 def _resolve_path(path: str) -> str:
-    """Helper to resolve ~/ and aliases like 'Desktop' to absolute paths."""
+    """Helper to resolve ~/ and aliases like 'Desktop' to Windows absolute paths."""
     # Handle 'Desktop' or 'desktop' at the start of the path
     if path.lower().startswith("desktop"):
-        # Replace 'desktop' or 'Desktop' with the absolute path
-        # If it's just 'desktop', result = ~/Desktop
-        # If it's 'desktop/myfolder', result = ~/Desktop/myfolder
-        suffix = path[7:].lstrip("/") # Remove 'desktop' or 'Desktop' and leading slash
-        path = os.path.join(os.path.expanduser("~/Desktop"), suffix)
+        suffix = path[7:].lstrip("\\/") # Remove 'desktop' or 'Desktop' and leading slash
+        path = os.path.join(os.path.expanduser("~\\Desktop"), suffix)
+    elif path.lower().startswith("documents"):
+        suffix = path[9:].lstrip("\\/")
+        path = os.path.join(os.path.expanduser("~\\Documents"), suffix)
     
-    # Expand ~ user shell alias
-    return os.path.abspath(os.path.expanduser(path))
+    # Expand ~ user shell alias and normalize to Windows backslashes
+    full_path = os.path.abspath(os.path.expanduser(path))
+    return full_path.replace("/", "\\")
 
 def create_folder(path: str) -> str:
     """Creates a new directory at the specified path."""

@@ -25,35 +25,30 @@ AVAILABLE TOOLS:
 {tools_schema}
 
 CORE LOGIC & MAPPING:
-1. **System Stats (Battery, Volume, OS)**: ALWAYS use `run_command`.
-   - Mapping: "battery" -> `pmset -g batt`.
-   - Mapping: "volume" -> `osascript -e "get volume settings"`.
-2. **Web Content & Video**:
+1. **System Stats (Battery, Volume, OS)**: ALWAYS use `run_command` via PowerShell.
+   - Mapping: "battery" -> `WMIC Path Win32_Battery Get EstimatedChargeRemaining`.
+   - Mapping: "volume" -> `(Get-AudioDevice).Volume`.
+2. **ChatGPT & Research**:
+   - If user asks to search/query on ChatGPT, ALWAYS use `search_chatgpt`.
+   - **CRITICAL**: Normalize `chat.gpt.com` or `church gpt` to `chatgpt.com`.
+3. **Web & Video**:
    - "search on youtube" -> `search_youtube`.
-   - "search on safari" -> `open_url` or `open_safari_private`.
-3. **App Control**:
-   - "vs code" or "editor" -> `open_in_code`.
-   - "chrome" or "safari" -> `open_app`.
-4. **Fuzzy Intent Detection**:
-   - "church gpt" -> `open_url` with 'chatgpt.com'.
+4. **App Control**:
+   - "vs code" -> `open_in_code`.
+
+AUTONOMOUS WINDOWS MISSION:
+You are not restricted to these mappings. Use your LLM context to understand the user's DEEP intent. If they say "make things happen in real time", combine multiple tools. If a tool fails, reflect on the error in context and try a different approach (e.g., if one URL fails, search for the correct one).
 
 INSTRUCTIONS:
-1. ALWAYS respond in valid JSON: {{"plan": [{{"tool": "tool_name", "args": {{...}}}}, ...]}}
-2. **Error Reflection**: Review context for failed tool calls and LEARN from them.
-3. Treat 'Desktop' as '~/Desktop/'.
+1. RESPONSE FORMAT: ONLY JSON {{"plan": [{{"tool": "name", "args": {{...}}}}]}}
+2. **Submission**: When searching ChatGPT, provide the full query in `prompt`.
 
 EXAMPLES:
-User: "Search for pizza recipes on youtube"
-Response: {{"plan": [{{"tool": "search_youtube", "args": {{"query": "pizza recipes"}}}}]}}
+User: "What's my battery?"
+Response: {{"plan": [{{"tool": "run_command", "args": {{"cmd": "WMIC Path Win32_Battery Get EstimatedChargeRemaining"}}}}]}}
 
-User: "Create folder test on desktop then open in code"
-Response: {{"plan": [
-    {{"tool": "create_folder", "args": {{"path": "Desktop/test"}}}},
-    {{"tool": "open_in_code", "args": {{"path": "Desktop/test"}}}}
-]}}
-
-User: "What is my battery level?"
-Response: {{"plan": [{{"tool": "run_command", "args": {{"cmd": "pmset -g batt"}}}}]}}
+User: "open church gpt and search for what is logic gate"
+Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "what is logic gate"}}}}]}}
 """
         return prompt
 
