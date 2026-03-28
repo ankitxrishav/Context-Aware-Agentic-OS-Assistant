@@ -28,7 +28,25 @@ class VoiceListener:
                         send_notification("Agentic AI", "Voice Control deactivated.")
                         self.stop()
                         break
+                    # Add Semantic Noise Filtering
+                    print("\n🛡️ Authenticating Intent...")
+                    try:
+                        import ollama
+                        client = ollama.Client()
+                        prompt = f"""You are a Voice Command Filter.
+Analyze this microphone transcription: "{text}"
+Is it a deliberate COMMAND meant for an AI Assistant, or just background NOISE/chatter?
+Reply with ONLY "COMMAND" or "NOISE"."""
+                        res = client.chat(model="gemma3:1b", messages=[{"role": "user", "content": prompt}])
+                        intent = res.message.content.strip().upper()
                         
+                        if "NOISE" in intent:
+                            print(f"[Voice Filter] Ignored background noise: '{text}'")
+                            continue
+                    except Exception as e:
+                        print(f"[Voice Filter Error] {e} - Passing through.")
+                        
+                    print(f"[Voice] Executing Command: {text}")
                     # Send text to callback (main loop)
                     self.callback(text)
                     

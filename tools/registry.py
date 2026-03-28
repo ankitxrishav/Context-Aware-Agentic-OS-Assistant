@@ -13,6 +13,7 @@ class ToolRegistry:
         self._register_file_tools()
         self._register_app_tools()
         self._register_terminal_tools()
+        self._register_web_tools()
 
     def _register_file_tools(self):
         self._tools["create_folder"] = create_folder
@@ -40,7 +41,15 @@ class ToolRegistry:
         # Mark dangerous tools
         self._dangerous_tools.add("run_command")
 
-    def get_tool(self, name: str) -> Callable:
+    def _register_web_tools(self):
+        try:
+            from .web_tools import scrape_website, web_tools_schema
+            self._tools["scrape_website"] = scrape_website
+            self._schemas.extend(web_tools_schema)
+        except ImportError:
+            pass
+
+    def get_tool(self, name: str) -> Optional[Callable]:
         return self._tools.get(name)
 
     def get_all_schemas(self) -> List[Dict[str, Any]]:

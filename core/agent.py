@@ -34,13 +34,15 @@ CORE LOGIC & MAPPING:
 3. **General Web Search (Google, etc.)**:
    - If user asks to "search google" or find general info (e.g., "time in indonesia"), use the `search_web` tool.
    - DO NOT hallucinate tools like 'search_google'.
-4. **Messaging (WhatsApp, Telegram, Messages)**:
+4. **Web Scraping (DOM Reading)**:
+   - If user explicitly wants you to "read", "check", or "scrape" data from a specific website (e.g., "check my attendance on ams.mitsgwl.in"), ALWAYS use `scrape_website`.
+5. **Messaging (WhatsApp, Telegram, Messages)**:
    - If user asks to send a message, text, or ping someone on a specific app, ALWAYS use the `send_message` tool.
    - Example apps: "WhatsApp", "Telegram", "Messages".
-5. **Multi-Step Chains (CRITICAL)**:
+6. **Multi-Step Chains (CRITICAL)**:
    - Break complex commands (e.g., "create X and open it") into MULTIPLE steps in the 'plan' array.
    - **Path Consistency**: Use the SAME path for creation and subsequent actions (e.g., folder 'high' -> `open_in_code` 'Desktop/high').
-6. **App Mapping**:
+7. **App Mapping**:
    - "vs code" -> `open_in_code`.
 
 INSTRUCTIONS:
@@ -60,6 +62,9 @@ Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "pizza"}}}}
 
 User: "search google for time in indonesia"
 Response: {{"plan": [{{"tool": "search_web", "args": {{"query": "time in indonesia"}}}}]}}
+
+User: "check my attendance on ams.mitsgwl.in"
+Response: {{"plan": [{{"tool": "scrape_website", "args": {{"url": "ams.mitsgwl.in", "selector": "body"}}}}]}}
 
 User: "open whatsapp and text John saying hello"
 Response: {{"plan": [{{"tool": "send_message", "args": {{"app_name": "WhatsApp", "contact": "John", "message": "hello"}}}}]}}

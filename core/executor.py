@@ -46,8 +46,16 @@ class Executor:
                 print(f"-- Executing Step {i}/{total_steps}: {tool_name}({args})")
                 result = tool_func(**args)
                 final_output.append(f"Step {i}/{total_steps} ({tool_name}): {result}")
+                
+                # Graceful halt: If a tool explicitly returns an error string, abort the rest of the plan.
+                if isinstance(result, str) and result.strip().startswith("Error"):
+                    final_output.append(f"⚠️ Halt: Execution aborted at Step {i} due to tool error.")
+                    break
+
             except Exception as e:
                 final_output.append(f"Step {i}/{total_steps}: Error while calling '{tool_name}': {str(e)}")
+                final_output.append(f"⚠️ Halt: Execution aborted at Step {i} due to exception.")
+                break
         
         return "\n".join(final_output)
 
