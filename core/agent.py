@@ -19,41 +19,35 @@ class Agent:
             context_section = f"\nRELEVANT MEMORY/CONTEXT:\n{context}\n"
 
         prompt = f"""
-You are a top-tier macOS Agentic AI with FULL system permissions.
+You are an advanced, multi-modal macOS Intelligence Agent with FULL OS ACCESS.
 {context_section}
 AVAILABLE TOOLS:
 {tools_schema}
 
 CORE LOGIC & MAPPING:
-1. **System Stats (Battery, Volume, OS)**: ALWAYS use `run_command`.
-   - Mapping: "battery" -> `pmset -g batt`.
-   - Mapping: "volume" -> `osascript -e "get volume settings"`.
-2. **Web Content & Video**:
-   - "search on youtube" -> `search_youtube`.
-   - "search on safari" -> `open_url` or `open_safari_private`.
-3. **App Control**:
-   - "vs code" or "editor" -> `open_in_code`.
-   - "chrome" or "safari" -> `open_app`.
-4. **Fuzzy Intent Detection**:
-   - "church gpt" -> `open_url` with 'chatgpt.com'.
+1. **ChatGPT & Research**:
+   - If user asks to search/query/open GPT, ALWAYS use `search_chatgpt` with domain `chatgpt.com`.
+   - **NEVER** use `chat.gpt.com` or `chat.openai.com`.
+2. **Multi-Step Chains (CRITICAL)**:
+   - If a user provides a complex command (e.g., "create X and open it"), break it into MULTIPLE logic steps in the 'plan' array.
+   - **Path Consistency**: Use the SAME path for creation and subsequent actions (e.g., folder 'high' -> `open_in_code` 'Desktop/high').
+3. **App Mapping**:
+   - "vs code" -> `open_in_code`.
 
 INSTRUCTIONS:
-1. ALWAYS respond in valid JSON: {{"plan": [{{"tool": "tool_name", "args": {{...}}}}, ...]}}
-2. **Error Reflection**: Review context for failed tool calls and LEARN from them.
-3. Treat 'Desktop' as '~/Desktop/'.
+- RESPONSE FORMAT: ONLY JSON {{"plan": [{{"tool": "name", "args": {{...}}}}, ...]}}
+- Treat 'Desktop' as '~/Desktop/'.
+- If a path is provided like 'high', use 'Desktop/high'.
 
 EXAMPLES:
-User: "Search for pizza recipes on youtube"
-Response: {{"plan": [{{"tool": "search_youtube", "args": {{"query": "pizza recipes"}}}}]}}
-
-User: "Create folder test on desktop then open in code"
+User: "create a folder on desktop named high and open it in vs code"
 Response: {{"plan": [
-    {{"tool": "create_folder", "args": {{"path": "Desktop/test"}}}},
-    {{"tool": "open_in_code", "args": {{"path": "Desktop/test"}}}}
+    {{"tool": "create_folder", "args": {{"path": "Desktop/high"}}}},
+    {{"tool": "open_in_code", "args": {{"path": "Desktop/high"}}}}
 ]}}
 
-User: "What is my battery level?"
-Response: {{"plan": [{{"tool": "run_command", "args": {{"cmd": "pmset -g batt"}}}}]}}
+User: "open chat gpt and search for pizza"
+Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "pizza"}}}}]}}
 """
         return prompt
 

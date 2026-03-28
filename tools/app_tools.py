@@ -41,6 +41,9 @@ def open_in_code(path: str) -> str:
 def open_safari_private(url: str = "google.com") -> str:
     """Opens Safari in Private/Incognito mode to a specific URL."""
     try:
+        # Aggressive typo correction
+        url = url.replace("chat.gpt.com", "chatgpt.com").replace("chat.openai.com", "chatgpt.com")
+        
         if not url.startswith(("http://", "https://")):
             url = f"https://{url}"
         # Use -n for new instance, -a for Safari, --args --private for private mode
