@@ -11,81 +11,56 @@ class Agent:
         self.memory = memory
         self.system_prompt = self._build_system_prompt()
 
-    def _build_system_prompt(self, context: str = "") -> str:
+    def _build_system_prompt(self, context: str = "", observation: str = "") -> str:
         tools_schema = json.dumps(registry.get_all_schemas(), indent=2)
         
         context_section = ""
         if context:
             context_section = f"\nRELEVANT MEMORY/CONTEXT:\n{context}\n"
+            
+        observation_section = ""
+        if observation:
+            observation_section = f"\nTOOL OBSERVATION:\n{observation}\n"
 
         prompt = f"""
-You are an advanced, multi-modal macOS Intelligence Agent with FULL OS ACCESS.
+SYSTEM: You are a macOS AI Assistant. You MUST respond in this JSON format: {{"reply": "text", "plan": []}}.
+
 {context_section}
-AVAILABLE TOOLS:
+{observation_section}
+
+TOOLS:
 {tools_schema}
 
-CORE LOGIC & MAPPING:
-1. **System Stats (Battery, Volume, OS)**: ALWAYS use `run_command`.
-   - Mapping: "battery" -> `pmset -g batt`.
-   - Mapping: "volume" -> `osascript -e "get volume settings"`.
-2. **ChatGPT & AI Research**:
-   - If user asks to search/query/open GPT, ALWAYS use `search_chatgpt`.
-   - The argument MUST be exactly `{{"prompt": "your search query"}}`. NEVER use `url`.
-3. **General Web Search (Google, etc.)**:
-   - If user asks to "search google" or find general info (e.g., "time in indonesia"), use the `search_web` tool.
-   - DO NOT hallucinate tools like 'search_google'.
-4. **Web Scraping (DOM Reading)**:
-   - If user explicitly wants you to "read", "check", or "scrape" data from a specific website (e.g., "check my attendance on ams.mitsgwl.in"), ALWAYS use `scrape_website`.
-5. **Messaging (WhatsApp, Telegram, Messages)**:
-   - If user asks to send a message, text, or ping someone on a specific app, ALWAYS use the `send_message` tool.
-   - Example apps: "WhatsApp", "Telegram", "Messages".
-6. **Multi-Step Chains (CRITICAL)**:
-   - Break complex commands (e.g., "create X and open it") into MULTIPLE steps in the 'plan' array.
-   - **Path Consistency**: Use the SAME path for creation and subsequent actions (e.g., folder 'high' -> `open_in_code` 'Desktop/high').
-7. **App Mapping**:
-   - "vs code" -> `open_in_code`.
-
-INSTRUCTIONS:
-- RESPONSE FORMAT: ONLY JSON {{"plan": [{{"tool": "name", "args": {{...}}}}, ...]}}
-- Treat 'Desktop' as '~/Desktop/'.
-- CRITICAL: DO NOT copy example paths literally. Extract the ACTUAL folder name from the user's prompt (e.g., if user asks for 'hammeettttt', use 'Desktop/hammeettttt', not 'Desktop/MyProject'!).
-
 EXAMPLES:
-User: "create a folder on desktop named project_alpha and open it in vs code"
-Response: {{"plan": [
-    {{"tool": "create_folder", "args": {{"path": "Desktop/project_alpha"}}}},
-    {{"tool": "open_in_code", "args": {{"path": "Desktop/project_alpha"}}}}
-]}}
+User: "how are you?"
+Response: {{"reply": "I am great! How can I help?", "plan": []}}
 
-User: "open chat gpt and search for pizza"
-Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "pizza"}}}}]}}
+User: "open youtube"
+Response: {{"reply": "Opening YouTube...", "plan": [{{"tool": "open_url", "args": {{"url": "youtube.com"}}}} ]}}
 
-User: "search google for time in indonesia"
-Response: {{"plan": [{{"tool": "search_web", "args": {{"query": "time in indonesia"}}}}]}}
+User: "check telegram unread" (Initial)
+Response: {{"reply": "Reading Telegram screen...", "plan": [{{"tool": "open_app", "args": {{"app_name": "Telegram"}}}}, {{"tool": "read_screen_state", "args": {{"app_name": "Telegram"}}}} ]}}
 
-User: "check my attendance on ams.mitsgwl.in"
-Response: {{"plan": [{{"tool": "scrape_website", "args": {{"url": "ams.mitsgwl.in", "selector": "body"}}}}]}}
-
-User: "open whatsapp and text John saying hello"
-Response: {{"plan": [{{"tool": "send_message", "args": {{"app_name": "WhatsApp", "contact": "John", "message": "hello"}}}}]}}
+User: "check telegram unread" (With Observation: "UPSC 45 unread")
+Response: {{"reply": "You have 45 unread messages in the UPSC group.", "plan": []}}
 
 User: "What's my battery?"
-Response: {{"plan": [{{"tool": "run_command", "args": {{"cmd": "pmset -g batt"}}}}]}}
+Response: {{"reply": "Checking battery...", "plan": [{{"tool": "run_command", "args": {{"cmd": "pmset -g batt"}}}} ]}}
 """
         return prompt
 
-    def get_action(self, user_input: str) -> Dict[str, Any]:
+    def get_action(self, user_input: str, observation: str = "") -> Dict[str, Any]:
         """Sends user input to the LLM and parses the expected JSON response."""
         try:
             # Query memory for context
             context = ""
-            if self.memory:
+            if self.memory and not observation:
                 context = self.memory.query_memory(user_input)
                 if context:
                     print(f"-- Retrieved Context: {context[:100]}...")
 
             # Rebuild system prompt with context
-            dynamic_prompt = self._build_system_prompt(context)
+            dynamic_prompt = self._build_system_prompt(context, observation)
 
             response = self.client.chat(
                 model=self.model,

@@ -1,7 +1,8 @@
-from typing import Dict, Any, Callable, List
+from typing import Dict, Any, Callable, List, Optional
 from .file_tools import create_folder, delete_folder, list_files, file_tools_schema
 from .app_tools import open_app, open_url, open_in_code, open_safari_private, search_youtube, search_chatgpt, search_web, send_message, simulate_typing, app_tools_schema
 from .terminal_tools import run_command, terminal_tools_schema
+from .computer_use import read_screen_state, computer_tools_schema
 
 class ToolRegistry:
     def __init__(self):
@@ -14,6 +15,7 @@ class ToolRegistry:
         self._register_app_tools()
         self._register_terminal_tools()
         self._register_web_tools()
+        self._register_computer_tools()
 
     def _register_file_tools(self):
         self._tools["create_folder"] = create_folder
@@ -40,6 +42,10 @@ class ToolRegistry:
         self._schemas.extend(terminal_tools_schema)
         # Mark dangerous tools
         self._dangerous_tools.add("run_command")
+
+    def _register_computer_tools(self):
+        self._tools["read_screen_state"] = read_screen_state
+        self._schemas.extend(computer_tools_schema)
 
     def _register_web_tools(self):
         try:

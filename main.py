@@ -31,21 +31,38 @@ def main():
 
     def process_input(user_input):
         print("-- Thinking...")
-        plan = agent.get_action(user_input)
+        response = agent.get_action(user_input)
         
-        if not plan:
-            print("Agent: I'm not sure which tool to use or I failed to generate a valid plan.")
+        if not response:
+            print("Agent: I'm not sure how to respond or I failed to generate a valid response.")
             return
 
-        # Check if it's a list (multi-step) or single action
-        steps = plan.get("plan", [])
-        print(f"-- Agent generated a plan with {len(steps)} step(s).")
-        
-        result = executor.execute_plan(plan)
-        print("\n" + result)
+        # 1. Handle Conversational Reply
+        reply = response.get("reply")
+        if reply:
+            print(f"\nAssistant: {reply}")
+
+        # 2. Handle Plan Execution
+        steps = response.get("plan", [])
+        if steps:
+            print(f"-- Agent generated a plan with {len(steps)} step(s).")
+            result = executor.execute_plan(response)
+            
+            # --- START ReAct LOOP (Summary Pass) ---
+            # If the tool returned something useful, let the AI summarize it.
+            if result and "Step 1" in result:
+                print("-- Perfecting the answer...")
+                summary_response = agent.get_action(user_input, observation=result)
+                final_reply = summary_response.get("reply", "Action complete.")
+                print(f"\nAssistant (Final): {final_reply}")
+                reply = f"{reply} | Final: {final_reply}"
+            else:
+                print("\n" + result)
+        else:
+            result = "No actions needed."
 
         # Store interaction in memory
-        memory_text = f"User said: {user_input} | Result: {result}"
+        memory_text = f"User said: {user_input} | Agent replied: {reply} | Result: {result}"
         memory_manager.add_memory(memory_text, metadata={"type": "interaction"})
 
     while True:
