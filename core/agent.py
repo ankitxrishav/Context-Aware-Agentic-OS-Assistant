@@ -25,13 +25,16 @@ AVAILABLE TOOLS:
 {tools_schema}
 
 CORE LOGIC & MAPPING:
-1. **ChatGPT & Research**:
-   - If user asks to search/query/open GPT, ALWAYS use `search_chatgpt` with domain `chatgpt.com`.
-   - **NEVER** use `chat.gpt.com` or `chat.openai.com`.
-2. **Multi-Step Chains (CRITICAL)**:
-   - If a user provides a complex command (e.g., "create X and open it"), break it into MULTIPLE logic steps in the 'plan' array.
+1. **System Stats (Battery, Volume, OS)**: ALWAYS use `run_command`.
+   - Mapping: "battery" -> `pmset -g batt`.
+   - Mapping: "volume" -> `osascript -e "get volume settings"`.
+2. **ChatGPT & Research**:
+   - If user asks to search/query/open GPT, ALWAYS use `search_chatgpt`.
+   - The argument MUST be exactly `{{"prompt": "your search query"}}`. NEVER use `url`.
+3. **Multi-Step Chains (CRITICAL)**:
+   - Break complex commands (e.g., "create X and open it") into MULTIPLE steps in the 'plan' array.
    - **Path Consistency**: Use the SAME path for creation and subsequent actions (e.g., folder 'high' -> `open_in_code` 'Desktop/high').
-3. **App Mapping**:
+4. **App Mapping**:
    - "vs code" -> `open_in_code`.
 
 INSTRUCTIONS:
@@ -48,6 +51,9 @@ Response: {{"plan": [
 
 User: "open chat gpt and search for pizza"
 Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "pizza"}}}}]}}
+
+User: "What's my battery?"
+Response: {{"plan": [{{"tool": "run_command", "args": {{"cmd": "pmset -g batt"}}}}]}}
 """
         return prompt
 
