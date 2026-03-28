@@ -19,7 +19,7 @@ class Agent:
             context_section = f"\nRELEVANT MEMORY/CONTEXT:\n{context}\n"
 
         prompt = f"""
-You are a top-tier macOS Agentic AI with FULL system permissions.
+You are an advanced, multi-modal macOS Intelligence Agent with FULL OS ACCESS.
 {context_section}
 AVAILABLE TOOLS:
 {tools_schema}
@@ -29,26 +29,31 @@ CORE LOGIC & MAPPING:
    - Mapping: "battery" -> `WMIC Path Win32_Battery Get EstimatedChargeRemaining`.
    - Mapping: "volume" -> `(Get-AudioDevice).Volume`.
 2. **ChatGPT & Research**:
-   - If user asks to search/query on ChatGPT, ALWAYS use `search_chatgpt`.
-   - **CRITICAL**: Normalize `chat.gpt.com` or `church gpt` to `chatgpt.com`.
-3. **Web & Video**:
-   - "search on youtube" -> `search_youtube`.
-4. **App Control**:
+   - If user asks to search/query on ChatGPT, ALWAYS use `search_chatgpt` with domain `chatgpt.com`.
+   - **NEVER** use `chat.gpt.com` or `chat.openai.com`.
+3. **Multi-Step Chains (CRITICAL)**:
+   - If a user provides a complex command (e.g., "create X and open it"), break it into MULTIPLE logic steps in the 'plan' array.
+   - **Path Consistency**: Use the SAME path for creation and subsequent actions (e.g., folder 'high' -> `open_in_code` 'Desktop/high').
+4. **App Mapping**:
    - "vs code" -> `open_in_code`.
 
 AUTONOMOUS WINDOWS MISSION:
-You are not restricted to these mappings. Use your LLM context to understand the user's DEEP intent. If they say "make things happen in real time", combine multiple tools. If a tool fails, reflect on the error in context and try a different approach (e.g., if one URL fails, search for the correct one).
-
-INSTRUCTIONS:
-1. RESPONSE FORMAT: ONLY JSON {{"plan": [{{"tool": "name", "args": {{...}}}}]}}
-2. **Submission**: When searching ChatGPT, provide the full query in `prompt`.
+- Use your LLM context to understand the user's DEEP intent.
+- RESPONSE FORMAT: ONLY JSON {{"plan": [{{"tool": "name", "args": {{...}}}}, ...]}}
+- Handle 'Desktop' as '~/Desktop/'. Use the SAME path for creation and opening.
 
 EXAMPLES:
 User: "What's my battery?"
 Response: {{"plan": [{{"tool": "run_command", "args": {{"cmd": "WMIC Path Win32_Battery Get EstimatedChargeRemaining"}}}}]}}
 
-User: "open church gpt and search for what is logic gate"
-Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "what is logic gate"}}}}]}}
+User: "create a folder on desktop named high and open it in vs code"
+Response: {{"plan": [
+    {{"tool": "create_folder", "args": {{"path": "Desktop/high"}}}},
+    {{"tool": "open_in_code", "args": {{"path": "Desktop/high"}}}}
+]}}
+
+User: "open chat gpt and search for pizza"
+Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "pizza"}}}}]}}
 """
         return prompt
 
