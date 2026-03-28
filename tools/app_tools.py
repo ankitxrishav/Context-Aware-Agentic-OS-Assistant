@@ -1,4 +1,5 @@
 import subprocess
+import os
 from typing import Dict, Any, List
 
 def open_app(app_name: str) -> str:
