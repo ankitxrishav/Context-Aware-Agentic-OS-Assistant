@@ -2,8 +2,8 @@ from core.agent import Agent
 import json
 
 agent = Agent()
-req1 = "make a folder on desktop name 'hammeettttt' and open in vs code"
-req2 = "search google for time in indoneaisa"
+req1 = "open whatapp and text her 'hi'"
+req2 = "open telegram and send 'xyz' a message saying hello"
 
 print("--- REQ 1 ---")
 print(json.dumps(agent.get_action(req1), indent=2))

@@ -34,10 +34,13 @@ CORE LOGIC & MAPPING:
 3. **General Web Search (Google, etc.)**:
    - If user asks to "search google" or find general info (e.g., "time in indonesia"), use the `search_web` tool.
    - DO NOT hallucinate tools like 'search_google'.
-4. **Multi-Step Chains (CRITICAL)**:
+4. **Messaging (WhatsApp, Telegram, Messages)**:
+   - If user asks to send a message, text, or ping someone on a specific app, ALWAYS use the `send_message` tool.
+   - Example apps: "WhatsApp", "Telegram", "Messages".
+5. **Multi-Step Chains (CRITICAL)**:
    - Break complex commands (e.g., "create X and open it") into MULTIPLE steps in the 'plan' array.
    - **Path Consistency**: Use the SAME path for creation and subsequent actions (e.g., folder 'high' -> `open_in_code` 'Desktop/high').
-5. **App Mapping**:
+6. **App Mapping**:
    - "vs code" -> `open_in_code`.
 
 INSTRUCTIONS:
@@ -57,6 +60,9 @@ Response: {{"plan": [{{"tool": "search_chatgpt", "args": {{"prompt": "pizza"}}}}
 
 User: "search google for time in indonesia"
 Response: {{"plan": [{{"tool": "search_web", "args": {{"query": "time in indonesia"}}}}]}}
+
+User: "open whatsapp and text John saying hello"
+Response: {{"plan": [{{"tool": "send_message", "args": {{"app_name": "WhatsApp", "contact": "John", "message": "hello"}}}}]}}
 
 User: "What's my battery?"
 Response: {{"plan": [{{"tool": "run_command", "args": {{"cmd": "pmset -g batt"}}}}]}}

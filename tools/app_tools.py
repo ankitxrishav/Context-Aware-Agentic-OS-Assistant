@@ -101,6 +101,54 @@ def search_chatgpt(prompt: str) -> str:
     except Exception as e:
         return f"Error using ChatGPT automation: {str(e)}"
 
+def send_message(app_name: str, contact: str, message: str) -> str:
+    """Takes over the UI to send a message via WhatsApp, Telegram, or Messages."""
+    try:
+        subprocess.run(["open", "-a", app_name], check=True)
+        
+        applescript = f'''
+        delay 1.5
+        tell application "System Events"
+            tell process "{app_name}"
+                set frontmost to true
+                delay 0.5
+                -- Cmd+F to search (Works on WhatsApp, Telegram, iMessage)
+                keystroke "f" using command down
+                delay 0.5
+                keystroke "{contact}"
+                delay 1.5
+                -- Hit Enter to select contact
+                key code 36
+                delay 1
+                -- Type the message
+                keystroke "{message}"
+                delay 0.5
+                -- Hit Enter to send
+                key code 36
+            end tell
+        end tell
+        '''
+        subprocess.run(["osascript", "-e", applescript], check=True)
+        return f"Successfully sent message to {contact} on {app_name}."
+    except Exception as e:
+        return f"Error using UI automation for {app_name}: {str(e)}"
+
+def simulate_typing(text: str, press_enter: bool = False) -> str:
+    """Simulates custom keyboard typing into the currently active window."""
+    try:
+        enter_code = "key code 36" if press_enter else ""
+        applescript = f'''
+        tell application "System Events"
+            keystroke "{text}"
+            delay 0.2
+            {enter_code}
+        end tell
+        '''
+        subprocess.run(["osascript", "-e", applescript], check=True)
+        return f"Successfully simulated typing '{text}' into the active window."
+    except Exception as e:
+        return f"Error simulating typing: {str(e)}"
+
 # Schema for the tool registry
 app_tools_schema = [
     {
@@ -177,6 +225,31 @@ app_tools_schema = [
                 "query": {"type": "string", "description": "The search term to look up, e.g., 'time in indonesia'."}
             },
             "required": ["query"]
+        }
+    },
+    {
+        "name": "send_message",
+        "description": "Automates the PC UI to send a message on messaging apps like WhatsApp, Telegram, or Messages.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "app_name": {"type": "string", "description": "The name of the messaging app (e.g., 'WhatsApp', 'Telegram')."},
+                "contact": {"type": "string", "description": "The name of the contact to message exactly as it appears in the app."},
+                "message": {"type": "string", "description": "The message to send."}
+            },
+            "required": ["app_name", "contact", "message"]
+        }
+    },
+    {
+        "name": "simulate_typing",
+        "description": "Types arbitrary text into the currently active application window. Useful for forms or unlabeled search bars.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string", "description": "The text to type using the keyboard."},
+                "press_enter": {"type": "boolean", "description": "Whether to press the Enter key after typing. Defaults to false."}
+            },
+            "required": ["text"]
         }
     }
 ]
