@@ -1,6 +1,7 @@
 import subprocess
 import os
 from typing import Dict, Any, List
+from .file_tools import _resolve_path
 
 def open_app(app_name: str) -> str:
     """Opens a macOS application by its name."""
@@ -27,11 +28,14 @@ def open_url(url: str) -> str:
 def open_in_code(path: str) -> str:
     """Opens a file or folder in Visual Studio Code."""
     try:
+        # Resolve path so 'Desktop/test' expands correctly
+        resolved_path = _resolve_path(path)
+        
         # First ensure the path exists before trying to open it
-        if not os.path.exists(path):
-            return f"Error: Path '{path}' does not exist. Please create it first."
+        if not os.path.exists(resolved_path):
+            return f"Error: Path '{path}' ('{resolved_path}') does not exist. Please create it first."
             
-        subprocess.run(["open", "-a", "Visual Studio Code", path], check=True)
+        subprocess.run(["open", "-a", "Visual Studio Code", resolved_path], check=True)
         return f"Successfully opened in Visual Studio Code: {path}"
     except subprocess.CalledProcessError as e:
         return f"Error opening path in VS Code: {str(e)}"
@@ -62,6 +66,17 @@ def search_youtube(query: str) -> str:
         return f"Successfully searched YouTube for: {query}"
     except Exception as e:
         return f"Error searching YouTube: {str(e)}"
+
+def search_web(query: str) -> str:
+    """Perform a general web search using Google in the default browser."""
+    try:
+        import urllib.parse
+        encoded_query = urllib.parse.quote(query)
+        url = f"https://www.google.com/search?q={encoded_query}"
+        subprocess.run(["open", url], check=True)
+        return f"Successfully searched the web for: {query}"
+    except Exception as e:
+        return f"Error searching the web: {str(e)}"
 
 def search_chatgpt(prompt: str) -> str:
     """Opens ChatGPT in Safari and automatically enters/submits the prompt."""
@@ -151,6 +166,17 @@ app_tools_schema = [
                 "prompt": {"type": "string", "description": "The question or query to ask ChatGPT."}
             },
             "required": ["prompt"]
+        }
+    },
+    {
+        "name": "search_web",
+        "description": "Performs a generic web search (e.g., Google search) for a query and opens it in the default browser.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "The search term to look up, e.g., 'time in indonesia'."}
+            },
+            "required": ["query"]
         }
     }
 ]
