@@ -63,6 +63,29 @@ def search_youtube(query: str) -> str:
     except Exception as e:
         return f"Error searching YouTube: {str(e)}"
 
+def search_chatgpt(prompt: str) -> str:
+    """Opens ChatGPT in Safari and automatically enters/submits the prompt."""
+    try:
+        url = "https://chatgpt.com/"
+        subprocess.run(["open", "-a", "Safari", url], check=True)
+        
+        # Use AppleScript to type and press return
+        applescript = f'''
+        delay 3
+        tell application "System Events"
+            tell process "Safari"
+                set frontmost to true
+                keystroke "{prompt}"
+                delay 0.5
+                key code 36 -- Return key
+            end tell
+        end tell
+        '''
+        subprocess.run(["osascript", "-e", applescript], check=True)
+        return f"Successfully opened ChatGPT and submitted prompt: {prompt}"
+    except Exception as e:
+        return f"Error using ChatGPT automation: {str(e)}"
+
 # Schema for the tool registry
 app_tools_schema = [
     {
@@ -117,6 +140,17 @@ app_tools_schema = [
                 "query": {"type": "string", "description": "The search term, e.g., 'best hindi songs'."}
             },
             "required": ["query"]
+        }
+    },
+    {
+        "name": "search_chatgpt",
+        "description": "Opens ChatGPT in Safari and automatically types/submits a search prompt.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "prompt": {"type": "string", "description": "The question or query to ask ChatGPT."}
+            },
+            "required": ["prompt"]
         }
     }
 ]

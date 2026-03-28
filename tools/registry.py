@@ -1,6 +1,6 @@
 from typing import Dict, Any, Callable, List
 from .file_tools import create_folder, delete_folder, list_files, file_tools_schema
-from .app_tools import open_app, open_url, open_in_code, open_safari_private, search_youtube, app_tools_schema
+from .app_tools import open_app, open_url, open_in_code, open_safari_private, search_youtube, search_chatgpt, app_tools_schema
 from .terminal_tools import run_command, terminal_tools_schema
 
 class ToolRegistry:
@@ -28,6 +28,7 @@ class ToolRegistry:
         self._tools["open_in_code"] = open_in_code
         self._tools["open_safari_private"] = open_safari_private
         self._tools["search_youtube"] = search_youtube
+        self._tools["search_chatgpt"] = search_chatgpt
         self._schemas.extend(app_tools_schema)
 
     def _register_terminal_tools(self):
