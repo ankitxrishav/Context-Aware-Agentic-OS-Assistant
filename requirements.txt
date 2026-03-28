@@ -1,0 +1,6 @@
+ollama
+chromadb
+mcp
+SpeechRecognition
+PyAudio
+python-dotenv

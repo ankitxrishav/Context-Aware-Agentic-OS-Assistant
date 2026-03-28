@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Databases
+chroma_db/
+
+# macOS
+.DS_Store
+
+# Logs
+/tmp/agentic_ai.*.log
+agent_command.txt
+agent_result.txt
